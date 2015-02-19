@@ -147,7 +147,7 @@ function update() {
 
 //Creates enemies
 function createEnemy() {
-   for (var i=0; i<25; i++) {
+   for (var i=0; i<45; i++) {
        var enemy = enemies.create(game.world.randomX, game.rnd.integerInRange(100,600), 'enemy');
        game.physics.arcade.enable(enemy);
        enemy.body.gravity.y = 400;
@@ -179,7 +179,7 @@ function enemyMove() {
 
 //Creates flowers
 function createFlower() {
-    for(var i = 0; i<60; i++) {
+    for(var i = 0; i<65; i++) {
 	flowers.create(game.rnd.integerInRange(100,5000), game.rnd.integerInRange(300,700), 'flower');
 	
     }
