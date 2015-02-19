@@ -12,6 +12,7 @@ var flowers;
 var grudgeBar;
 var grudgeVal;
 var background;
+var newBg;
 var jumpEnable = true;
 var keys = Phaser.Keyboard;
 var jump;
@@ -22,6 +23,7 @@ var scoreText;
 function preload() {
     game.load.image('darkbg','assets/background_by_sapphireitrenore.png');
     game.load.image('grudgeBar','assets/grudge_bar.png');
+    game.load.image('dawn','assets/dawn.jpg');
     game.load.image('ground','assets/platform_black.png');
     game.load.image('flower','assets/flower.png');
     game.load.audio('music',['assets/audio/Bonobo-Stay_The_Same_(Instrumental).mp3']);
@@ -39,6 +41,9 @@ function create() {
     //background = game.add.tileSprite(0,0,1037,720,'darkbg');
     game.world.setBounds(0,0,5404,920);
     background = game.add.tileSprite(0, 0, game.world.width, game.cache.getImage('darkbg').height,'darkbg');
+
+    newBg = game.add.tileSprite(0, 0, game.world.width, game.cache.getImage('dawn').height,'dawn');
+    newBg.visible = false;
     map = game.add.tilemap('map');
     map.addTilesetImage('tiles3','tiles');
     layer = map.createLayer('foreground');
@@ -225,6 +230,9 @@ function changeWorld(grudgeVal, enemies) {
     if(Math.round(grudgeVal) <= 0 && grudgeBar.visible === false) {
 	enemies.destroy(true);
 	map.removeTile(91,5); //Remove the block tile that blocks the goal
+	background.visible = false;
+	newBg.visible = true;
+	
     }
 }
 function enemyAttack(player, enemies) {
