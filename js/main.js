@@ -51,7 +51,7 @@ function create() {
     map.setCollisionBetween(0,200);
 
     var music = game.add.audio('music');
-    music.volume = 0.3;
+    music.volume = 0.6;
     music.loop = true;
     music.play();
     jump = game.add.audio('jump');
