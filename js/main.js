@@ -3,13 +3,16 @@
 var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'game', {preload: preload, create: create, update: update});
 
 var player;
+var xMove = 80;
 var ground;
 var percentDone = 0;
 var platform;
 var enemies;
 var flowers;
 var grudgeBar;
+var grudgeVal;
 var background;
+var jumpEnable = true;
 var keys = Phaser.Keyboard;
 var jump;
 var map; // Map from the Tiled editor
@@ -76,34 +79,34 @@ function create() {
 
     game.camera.follow(player);
     
-    //ENemy movements
+    //Enemy movements
     game.time.events.loop(Phaser.Timer.SECOND, enemyMove, this);
-    scoreText = game.add.text(0,0,'Grudge: ', {fontSize: '32px', fill: '#ffff'});
+    game.time.events.loop(Phaser.Timer.SECOND*2, function(){jumpEnable = true;}, this);
+    scoreText = game.add.text(0,0,'Grudge: ', {fontSize: '32px', fill: '#FFFFFF'});
     scoreText.fixedToCamera = true;
     grudgeBar = game.add.image(100,1,'grudgeBar');
     grudgeBar.fixedToCamera = true;
-    grudgeBar.width = 177;
+    grudgeBar.width = 180;
     //grudgeBar.initialWidth = 177; //Original pixel image width
-   
+    grudgeVal = grudgeBar.width;
 }
 
 function update() {
 
     game.physics.arcade.collide(player, platform);
     game.physics.arcade.collide(player, layer);
+    game.physics.arcade.collide(player, enemies, enemyAttack, null, this);
     game.physics.arcade.collide(enemies, platform);
     game.physics.arcade.collide(enemies, layer);
     game.physics.arcade.collide(flowers, layer, collisionHandler,null,this);
-    game.physics.arcade.collide(player, flowers, collectFlower,null,this);
-    game.physics.arcade.collide(player, enemies, enemyAttack, null, this);
-    changeWorld(grudgeBar.width, enemies);
+    
+    game.physics.arcade.overlap(player, flowers, collectFlower, null, this);
+    changeWorld(grudgeVal, enemies);
 
     player.body.velocity.x = 0;
 
-    //grudgeBar.width = percentDone*grudgeBar.initialWidth;
-    //percentDone+=0.01;
-     var xMove = getSpeed(grudgeBar.width);
-    //playerMove(grudgeBar);
+    //playerMove();
+    console.log("xMove : "+xMove);
     if(game.input.keyboard.isDown(keys.RIGHT))
     {
 	player.body.velocity.x = xMove;
@@ -112,7 +115,7 @@ function update() {
     }
     else if(game.input.keyboard.isDown(keys.LEFT))
     {
-	player.body.velocity.x = -(xMove);
+	player.body.velocity.x = -xMove;
 	player.animations.play('left');
 	background.tilePosition.x += 0.20;
     }
@@ -120,51 +123,27 @@ function update() {
     {
 	player.animations.stop();
 	player.frame = 4;
-//	background.tilePosition.x = 0;
     }
     
     //Jumping
-    if(game.input.keyboard.isDown(keys.UP))
+    if(game.input.keyboard.isDown(keys.UP) && jumpEnable === true)
     {
 	jump.volume = 0.4;
 	jump.play();
-	player.body.velocity.y = -375;
+	player.body.velocity.y = -400;
+	jumpEnable = false;
     }
 
     
 
-    /*if(game.input.keyboard.isDown(keys.RIGHT))
-    {
-	player.body.velocity.x = 175;
-	player.animations.play('right');
-	background.tilePosition.x -= 0.20;
-    }
-    else if(game.input.keyboard.isDown(keys.LEFT))
-    {
-	player.body.velocity.x = -175;
-	player.animations.play('left');
-	background.tilePosition.x += 0.20;
-    }
-    else
-    {
-	player.animations.stop();
-	player.frame = 4;
-//	background.tilePosition.x = 0;
-    }
-    
-    //Jumping
-    if(game.input.keyboard.isDown(keys.UP))
-    {
-	jump.volume = 0.4;
-	jump.play();
-	player.body.velocity.y = -445;
-    }*/
+ 
+    updateGrudgeBar(grudgeVal);
 }
 
 //Creates enemies
 function createEnemy() {
-   for (var i=0; i<15; i++) {
-       var enemy = enemies.create(game.world.randomX, randomHeight(), 'enemy');
+   for (var i=0; i<25; i++) {
+       var enemy = enemies.create(game.world.randomX, game.rnd.integerInRange(100,600), 'enemy');
        game.physics.arcade.enable(enemy);
        enemy.body.gravity.y = 400;
        enemy.body.bounce.y = 0.2;
@@ -181,20 +160,12 @@ function enemyMove() {
 	var x = Math.round(Math.random());
 	if(x == 1)
 	{
-	    /*if(enemy.body.touching.down)
-	    {
-		enemy.body.velocity.y = -400;
-	    }*/
 	    enemy.animations.play('left');
 	    enemy.body.velocity.x = -100;
 	
 	}
 	if(x == 0)
 	{
-	    /*if(enemy.body.touching.down)
-	    {
-		enemy.body.velocity.y = -400;
-	    }*/
 	    enemy.animations.play('right');
 	    enemy.body.velocity.x = 100;
 	}
@@ -203,57 +174,30 @@ function enemyMove() {
 
 //Creates flowers
 function createFlower() {
-    for(var i = 0; i<30; i++) {
-	flowers.create(game.rnd.integerInRange(100,5000), game.rnd.integerInRange(300,600), 'flower');
+    for(var i = 0; i<60; i++) {
+	flowers.create(game.rnd.integerInRange(100,5000), game.rnd.integerInRange(300,700), 'flower');
 	
     }
 }
-function playerMove(grudgeBar) {
-    
-    var xMove = getSpeed(grudgeBar);
-    if(game.input.keyboard.isDown(keys.RIGHT))
-    {
-	player.body.velocity.x = xMove;
-	player.animations.play('right');
-	background.tilePosition.x -= 0.20;
-    }
-    else if(game.input.keyboard.isDown(keys.LEFT))
-    {
-	player.body.velocity.x = -(xMove);
-	player.animations.play('left');
-	background.tilePosition.x += 0.20;
-    }
-    else
-    {
-	player.animations.stop();
-	player.frame = 4;
-//	background.tilePosition.x = 0;
-    }
-    
-    //Jumping
-    if(game.input.keyboard.isDown(keys.UP))
-    {
-	jump.volume = 0.4;
-	jump.play();
-	player.body.velocity.y = -375;
-    }
 
+
+function getSpeed(grudgeVal) {
+    var grudgeBarVal = 180;
+    if(grudgeVal > parseInt(grudgeBarVal*0.5)) {
+	console.log("This is grudgeBarVal*0.5: " +(grudgeBarVal *0.5));
+	xMove = 80;
+    }
+    if(grudgeVal <= parseInt(grudgeBarVal*0.5))  {
+	xMove = 145;
+    }
+    if(grudgeVal <= 0 && grudgeBar.visible === false) {
+	
+	xMove = 215;
+    }
+    return xMove;
 }
 
-function getSpeed(x) {
-    var moveVelocity = 0;
-    if(x > Math.round(grudgeBar.width*0.7)) {
-	return moveVelocity = 80;
-	}
-    if(x <= Math.round(grudgeBar.width*0.6)) {
-	return moveVelocity = 145;
-    }
-    if(x <= 0) {
-
-	return moveVelocity = 215;
-    }
-}
-function collisionHandler(flowers){
+function collisionHandler(){
     flower.kill();
     flower.reset(game.rnd.integerInRange(100,5000), game.rnd.integerInRanger(300,650));
 }
@@ -261,56 +205,59 @@ function collisionHandler(flowers){
 //Collects the flowers
 function collectFlower(player, flowers) {
     flowers.kill();
-    percentDone += 0.1;
-    var grudgeOrigWidth = 177;
-    if(grudgeBar.width > 0) 
+    if(grudgeVal > 0) 
     {
-	grudgeBar.width -=10;
-//	grudgeBar.width = parseInt(grudgeOrigWidth - (percentDone*grudgeOrigWidth));
-    }else {
+	grudgeVal -=9; //9 is a factor of 180, so increment it by this much
+    }
+    if(grudgeVal <= 0)
+    {
 	grudgeBar.visible = false;
-	}
-    /*`if(grudgeBar.width <= 0) {
-	grudgeBar.width = 0;
-	//grudgeBar.width = 0;
-	//percentDone = 0;
-	//changeWorld();
-    } */
-    //return grudgeBar.width;
+    }
+
     
+    getSpeed(grudgeVal);
+    updateGrudgeBar(grudgeVal);
+
 
 }
 
-function changeWorld(grudgeBar, enemies) {
-    if(Math.round(grudgeBar.width) <= 0) {
+function changeWorld(grudgeVal, enemies) {
+    if(Math.round(grudgeVal) <= 0 && grudgeBar.visible === false) {
 	enemies.destroy(true);
+	map.removeTile(91,5); //Remove the block tile that blocks the goal
     }
 }
 function enemyAttack(player, enemies) {
-    var grudgeOrigWidth = 177;
-    if ( grudgeBar.width < grudgeOrigWidth)
+    var grudgeOrigWidth = 180;
+    if ( grudgeVal < grudgeOrigWidth)
     {
 	
+	grudgeVal += 18; //18 is a factor of 180 so increment it by this much
+	getSpeed(grudgeVal);
+	updateGrudgeBar(grudgeVal);
 	//player.body.velocity.x = -400;
-	grudgeBar.width += 10;
+	//grudgeBar.width += 10;
 	//grudgeBar.width += parseInt(0.1*grudgeOrigWidth);
     }
     if(player.body.touching.left) {
-	player.body.center.x = 100;
+	player.body.velocity.x = 500;
+	player.body.bounce.setTo(20,20);
     }
     if (player.body.touching.right) {
 	player.body.center.x = -100;
     }
     if (player.body.touching.down) {
-	player.body.velocity.y = -300;
+	player.body.velocity.y = -400;
 	player.body.velocity.x = -300;
     }
+    
+    player.body.bounce.setTo(0,0);
     //return grudgeBar.width;
     
 }
 
-//generates a random y in the value greater than the floor
-function randomHeight() {
-    var width = 800;
-    return Math.random()*(width - (game.world.height - 150) + 150);
+function updateGrudgeBar(grudgeVal) {
+    grudgeBar.width = grudgeVal;
+    return grudgeBar.width;
 }
+
