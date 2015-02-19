@@ -189,7 +189,6 @@ function createFlower() {
 function getSpeed(grudgeVal) {
     var grudgeBarVal = 180;
     if(grudgeVal > parseInt(grudgeBarVal*0.5)) {
-	console.log("This is grudgeBarVal*0.5: " +(grudgeBarVal *0.5));
 	xMove = 80;
     }
     if(grudgeVal <= parseInt(grudgeBarVal*0.5))  {
@@ -243,9 +242,6 @@ function enemyAttack(player, enemies) {
 	grudgeVal += 18; //18 is a factor of 180 so increment it by this much
 	getSpeed(grudgeVal);
 	updateGrudgeBar(grudgeVal);
-	//player.body.velocity.x = -400;
-	//grudgeBar.width += 10;
-	//grudgeBar.width += parseInt(0.1*grudgeOrigWidth);
     }
     if(player.body.touching.left) {
 	player.body.velocity.x = 500;
